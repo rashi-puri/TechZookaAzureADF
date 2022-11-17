@@ -1,0 +1,9 @@
+{
+	"name": "conquerors-df",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "adf62e3d-94c8-401f-a9f2-d15f8c5344da",
+		"tenantId": "b1880af0-9810-4525-8e66-4f38485880c0"
+	}
+}
