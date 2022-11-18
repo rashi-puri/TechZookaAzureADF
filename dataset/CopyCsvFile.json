@@ -20,9 +20,11 @@
 		},
 		"schema": [
 			{
+				"name": "school_name",
 				"type": "String"
 			},
 			{
+				"name": "country",
 				"type": "String"
 			}
 		]
