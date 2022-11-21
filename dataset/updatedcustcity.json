@@ -1,0 +1,16 @@
+{
+	"name": "updatedcustcity",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabaseoutput",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "updated_Customer"
+		}
+	}
+}

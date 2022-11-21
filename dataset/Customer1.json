@@ -1,0 +1,21 @@
+{
+	"name": "Customer1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "DimCustomer 1",
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "Customer.xlsx",
+				"container": "adventure-work"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": []
+	}
+}
