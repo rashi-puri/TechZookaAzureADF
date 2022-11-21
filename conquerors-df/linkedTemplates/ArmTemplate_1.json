@@ -1,0 +1,314 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "conquerors-df"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/join_Cust_geo')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "joining customer and geography on basis of g key",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "geography",
+								"type": "DatasetReference"
+							},
+							"name": "geography"
+						},
+						{
+							"dataset": {
+								"referenceName": "Customer1",
+								"type": "DatasetReference"
+							},
+							"name": "customer"
+						},
+						{
+							"dataset": {
+								"referenceName": "InternetSales",
+								"type": "DatasetReference"
+							},
+							"name": "InternelSales"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "updatedcustcity",
+								"type": "DatasetReference"
+							},
+							"name": "revenueDesc"
+						}
+					],
+					"transformations": [
+						{
+							"name": "join1"
+						},
+						{
+							"name": "filteringColumns"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "mostSpentCity"
+						},
+						{
+							"name": "sumOfRevenue"
+						},
+						{
+							"name": "revenueDesc1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          GeographyKey as short,",
+						"          City as string,",
+						"          StateProvinceCode as string,",
+						"          StateProvinceName as string,",
+						"          CountryRegionCode as string,",
+						"          EnglishCountryRegionName as string,",
+						"          SpanishCountryRegionName as string,",
+						"          FrenchCountryRegionName as string,",
+						"          PostalCode as string,",
+						"          SalesTerritoryKey as short,",
+						"          IpAddressLocator as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> geography",
+						"source(output(",
+						"          CustomerKey as short,",
+						"          GeographyKey as short,",
+						"          CustomerAlternateKey as string,",
+						"          Title as string,",
+						"          FirstName as string,",
+						"          MiddleName as string,",
+						"          LastName as string,",
+						"          NameStyle as boolean,",
+						"          BirthDate as date,",
+						"          MaritalStatus as string,",
+						"          Suffix as string,",
+						"          Gender as string,",
+						"          EmailAddress as string,",
+						"          YearlyIncome as integer,",
+						"          TotalChildren as short,",
+						"          NumberChildrenAtHome as short,",
+						"          EnglishEducation as string,",
+						"          SpanishEducation as string,",
+						"          FrenchEducation as string,",
+						"          EnglishOccupation as string,",
+						"          SpanishOccupation as string,",
+						"          FrenchOccupation as string,",
+						"          HouseOwnerFlag as boolean,",
+						"          NumberCarsOwned as short,",
+						"          AddressLine1 as string,",
+						"          AddressLine2 as string,",
+						"          Phone as string,",
+						"          DateFirstPurchase as date,",
+						"          CommuteDistance as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> customer",
+						"source(output(",
+						"          ProductKey as short,",
+						"          OrderDateKey as date,",
+						"          DueDateKey as date,",
+						"          ShipDateKey as date,",
+						"          CustomerKey as short,",
+						"          PromotionKey as short,",
+						"          CurrencyKey as short,",
+						"          SalesTerritoryKey as short,",
+						"          SalesOrderNumber as string,",
+						"          SalesOrderLineNumber as short,",
+						"          RevisionNumber as boolean,",
+						"          OrderQuantity as boolean,",
+						"          UnitPrice as double,",
+						"          ExtendedAmount as double,",
+						"          UnitPriceDiscountPct as boolean,",
+						"          DiscountAmount as boolean,",
+						"          ProductStandardCost as double,",
+						"          TotalProductCost as double,",
+						"          SalesAmount as double,",
+						"          TaxAmt as double,",
+						"          Freight as double,",
+						"          CarrierTrackingNumber as string,",
+						"          CustomerPONumber as string,",
+						"          OrderDate as date,",
+						"          DueDate as date,",
+						"          ShipDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> InternelSales",
+						"geography, customer join(geography@GeographyKey == customer@GeographyKey,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 select(mapColumn(",
+						"          CustomerKey,",
+						"          GeographyKey = customer@GeographyKey,",
+						"          FirstName,",
+						"          LastName,",
+						"          Gender,",
+						"          City,",
+						"          PostalCode,",
+						"          SalesTerritoryKey,",
+						"          EmailAddress,",
+						"          MaritalStatus,",
+						"          BirthDate,",
+						"          YearlyIncome,",
+						"          TotalChildren,",
+						"          NumberChildrenAtHome",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> filteringColumns",
+						"filteringColumns, InternelSales join(filteringColumns@CustomerKey == InternelSales@CustomerKey,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"join2 select(mapColumn(",
+						"          GeographyKey,",
+						"          City,",
+						"          PostalCode,",
+						"          ProductKey,",
+						"          SalesTerritoryKey = InternelSales@SalesTerritoryKey,",
+						"          OrderQuantity,",
+						"          SalesAmount",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> mostSpentCity",
+						"mostSpentCity aggregate(groupBy(City),",
+						"     Total_Revenue = round(sum(SalesAmount),0)) ~> sumOfRevenue",
+						"sumOfRevenue sort(desc(Total_Revenue, true),",
+						"     caseInsensitive: true) ~> revenueDesc1",
+						"revenueDesc1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> revenueDesc"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_ETL_customer')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "join_Cust_geo",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "join_Cust_geo",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"geography": {},
+									"customer": {},
+									"InternelSales": {},
+									"revenueDesc": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/join_Cust_geo')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_Revenue_Citywise')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "join_Cust_geo",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "join_Cust_geo",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"geography": {},
+									"customer": {},
+									"InternelSales": {},
+									"revenueDesc": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/join_Cust_geo')]"
+			]
+		}
+	]
+}
