@@ -10,7 +10,7 @@
 		"schema": [],
 		"typeProperties": {
 			"schema": "dbo",
-			"table": "updated_Customer"
+			"table": "Revenue_Citywise"
 		}
 	}
 }
