@@ -1,0 +1,21 @@
+{
+	"name": "InternetSales",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "Sheet1",
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "FactInternetSales.xlsx",
+				"container": "adventure-work"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": []
+	}
+}
