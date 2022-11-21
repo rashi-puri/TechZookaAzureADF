@@ -27,6 +27,9 @@
 				},
 				{
 					"name": "AlterRow1"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -47,10 +50,11 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> sqldbsource",
-				"sqldbsource aggregate(groupBy(PrefferedTransactionMethod),",
+				"derivedColumn1 aggregate(groupBy(PrefferedTransactionMethod),",
 				"     Total_Count_Transaction = countDistinct(CustomerIdentifier),",
 				"          Total_Asset = sum(Total_Asset)) ~> AggOnTransactionMode",
 				"AggOnTransactionMode alterRow(upsertIf(true())) ~> AlterRow1",
+				"sqldbsource derive(Total_Asset = ERROR_FUNCTION('')) ~> derivedColumn1",
 				"AlterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",

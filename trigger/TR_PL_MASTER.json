@@ -3,7 +3,7 @@
 	"properties": {
 		"description": "This trigger will execute PL_MASTER pipeline every day at 9 am",
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {
