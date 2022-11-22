@@ -54,6 +54,9 @@
 				},
 				{
 					"name": "revenueDesc1"
+				},
+				{
+					"name": "AlterRow1"
 				}
 			],
 			"scriptLines": [
@@ -181,12 +184,14 @@
 				"     Total_Revenue = round(sum(SalesAmount),0)) ~> sumOfRevenue",
 				"sumOfRevenue sort(desc(Total_Revenue, true),",
 				"     caseInsensitive: true) ~> revenueDesc1",
-				"revenueDesc1 sink(allowSchemaDrift: true,",
+				"revenueDesc1 alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
-				"     insertable:true,",
+				"     insertable:false,",
 				"     updateable:false,",
-				"     upsertable:false,",
+				"     upsertable:true,",
+				"     keys:['City'],",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
