@@ -1,0 +1,126 @@
+{
+	"name": "CustomerJoinDF",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "geography",
+						"type": "DatasetReference"
+					},
+					"name": "geography"
+				},
+				{
+					"dataset": {
+						"referenceName": "Customer1",
+						"type": "DatasetReference"
+					},
+					"name": "customer"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable3",
+						"type": "DatasetReference"
+					},
+					"name": "CustomerGeoTable"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "SelectingReqColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          GeographyKey as short,",
+				"          City as string,",
+				"          StateProvinceCode as string,",
+				"          StateProvinceName as string,",
+				"          CountryRegionCode as string,",
+				"          EnglishCountryRegionName as string,",
+				"          SpanishCountryRegionName as string,",
+				"          FrenchCountryRegionName as string,",
+				"          PostalCode as string,",
+				"          SalesTerritoryKey as short,",
+				"          IpAddressLocator as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> geography",
+				"source(output(",
+				"          CustomerKey as short,",
+				"          GeographyKey as short,",
+				"          CustomerAlternateKey as string,",
+				"          Title as string,",
+				"          FirstName as string,",
+				"          MiddleName as string,",
+				"          LastName as string,",
+				"          NameStyle as boolean,",
+				"          BirthDate as date,",
+				"          MaritalStatus as string,",
+				"          Suffix as string,",
+				"          Gender as string,",
+				"          EmailAddress as string,",
+				"          YearlyIncome as integer,",
+				"          TotalChildren as short,",
+				"          NumberChildrenAtHome as short,",
+				"          EnglishEducation as string,",
+				"          SpanishEducation as string,",
+				"          FrenchEducation as string,",
+				"          EnglishOccupation as string,",
+				"          SpanishOccupation as string,",
+				"          FrenchOccupation as string,",
+				"          HouseOwnerFlag as boolean,",
+				"          NumberCarsOwned as short,",
+				"          AddressLine1 as string,",
+				"          AddressLine2 as string,",
+				"          Phone as string,",
+				"          DateFirstPurchase as date,",
+				"          CommuteDistance as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> customer",
+				"geography, customer join(geography@GeographyKey == customer@GeographyKey,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 select(mapColumn(",
+				"          CustomerKey,",
+				"          GeographyKey = customer@GeographyKey,",
+				"          FirstName,",
+				"          LastName,",
+				"          Gender,",
+				"          City,",
+				"          PostalCode,",
+				"          SalesTerritoryKey,",
+				"          EmailAddress,",
+				"          MaritalStatus,",
+				"          BirthDate,",
+				"          YearlyIncome,",
+				"          TotalChildren,",
+				"          NumberChildrenAtHome",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectingReqColumns",
+				"SelectingReqColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> CustomerGeoTable"
+			]
+		}
+	}
+}

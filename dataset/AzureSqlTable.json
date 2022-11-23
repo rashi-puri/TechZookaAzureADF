@@ -57,7 +57,7 @@
 		],
 		"typeProperties": {
 			"schema": "dbo",
-			"table": "Customer Sample Data"
+			"table": "CustomerGeoData"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
