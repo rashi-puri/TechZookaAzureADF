@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "join_Cust_geo",
+				"name": "RevenueCityWiseDF",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "join_Cust_geo",
+						"referenceName": "RevenueCityWiseDF",
 						"type": "DataFlowReference"
 					},
 					"compute": {
