@@ -25,13 +25,13 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/PL_ETL_customer')]",
+			"name": "[concat(parameters('factoryName'), '/PL_CustomerGeoJoin')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "join_Cust_geo",
+						"name": "CustomerJoinDF",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
@@ -44,14 +44,13 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "join_Cust_geo",
+								"referenceName": "CustomerJoinDF",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
 									"geography": {},
 									"customer": {},
-									"InternelSales": {},
-									"revenueDesc": {}
+									"CustomerGeoTable": {}
 								}
 							},
 							"staging": {},
@@ -70,7 +69,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/join_Cust_geo')]"
+				"[concat(variables('factoryId'), '/dataflows/CustomerJoinDF')]"
 			]
 		},
 		{
@@ -80,7 +79,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "join_Cust_geo",
+						"name": "RevenueCityWiseDF",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
@@ -93,14 +92,13 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "join_Cust_geo",
+								"referenceName": "RevenueCityWiseDF",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"geography": {},
-									"customer": {},
-									"InternelSales": {},
-									"revenueDesc": {}
+									"CustomerGeotable": {},
+									"internetSales": {},
+									"sink1": {}
 								}
 							},
 							"staging": {},
@@ -119,7 +117,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/join_Cust_geo')]"
+				"[concat(variables('factoryId'), '/dataflows/RevenueCityWiseDF')]"
 			]
 		},
 		{
@@ -183,7 +181,7 @@
 				],
 				"typeProperties": {
 					"schema": "dbo",
-					"table": "Customer Sample Data"
+					"table": "CustomerGeoData"
 				}
 			},
 			"dependsOn": [
@@ -223,6 +221,48 @@
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "UpdatedShanghai"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTable3')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "CustomerGeoData"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTableForRevenue')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "CityWiseRevenue"
 				}
 			},
 			"dependsOn": [
@@ -895,6 +935,285 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CustomerJoinDF')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "geography",
+								"type": "DatasetReference"
+							},
+							"name": "geography"
+						},
+						{
+							"dataset": {
+								"referenceName": "Customer1",
+								"type": "DatasetReference"
+							},
+							"name": "customer"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable3",
+								"type": "DatasetReference"
+							},
+							"name": "CustomerGeoTable"
+						}
+					],
+					"transformations": [
+						{
+							"name": "join1"
+						},
+						{
+							"name": "SelectingReqColumns"
+						},
+						{
+							"name": "alterRow1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          GeographyKey as short,",
+						"          City as string,",
+						"          StateProvinceCode as string,",
+						"          StateProvinceName as string,",
+						"          CountryRegionCode as string,",
+						"          EnglishCountryRegionName as string,",
+						"          SpanishCountryRegionName as string,",
+						"          FrenchCountryRegionName as string,",
+						"          PostalCode as string,",
+						"          SalesTerritoryKey as short,",
+						"          IpAddressLocator as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> geography",
+						"source(output(",
+						"          CustomerKey as short,",
+						"          GeographyKey as short,",
+						"          CustomerAlternateKey as string,",
+						"          Title as string,",
+						"          FirstName as string,",
+						"          MiddleName as string,",
+						"          LastName as string,",
+						"          NameStyle as boolean,",
+						"          BirthDate as date,",
+						"          MaritalStatus as string,",
+						"          Suffix as string,",
+						"          Gender as string,",
+						"          EmailAddress as string,",
+						"          YearlyIncome as integer,",
+						"          TotalChildren as short,",
+						"          NumberChildrenAtHome as short,",
+						"          EnglishEducation as string,",
+						"          SpanishEducation as string,",
+						"          FrenchEducation as string,",
+						"          EnglishOccupation as string,",
+						"          SpanishOccupation as string,",
+						"          FrenchOccupation as string,",
+						"          HouseOwnerFlag as boolean,",
+						"          NumberCarsOwned as short,",
+						"          AddressLine1 as string,",
+						"          AddressLine2 as string,",
+						"          Phone as string,",
+						"          DateFirstPurchase as date,",
+						"          CommuteDistance as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> customer",
+						"geography, customer join(geography@GeographyKey == customer@GeographyKey,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 select(mapColumn(",
+						"          CustomerKey,",
+						"          GeographyKey = customer@GeographyKey,",
+						"          FirstName,",
+						"          LastName,",
+						"          Gender,",
+						"          City,",
+						"          PostalCode,",
+						"          SalesTerritoryKey,",
+						"          EmailAddress,",
+						"          MaritalStatus,",
+						"          BirthDate,",
+						"          YearlyIncome,",
+						"          TotalChildren,",
+						"          NumberChildrenAtHome",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectingReqColumns",
+						"SelectingReqColumns alterRow(upsertIf(true())) ~> alterRow1",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['CustomerKey'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> CustomerGeoTable"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/geography')]",
+				"[concat(variables('factoryId'), '/datasets/Customer1')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTable3')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RevenueCityWiseDF')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference"
+							},
+							"name": "CustomerGeotable"
+						},
+						{
+							"dataset": {
+								"referenceName": "InternetSales",
+								"type": "DatasetReference"
+							},
+							"name": "internetSales"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTableForRevenue",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "joiningtables"
+						},
+						{
+							"name": "selectRevenueCol"
+						},
+						{
+							"name": "RevenueCityWise"
+						},
+						{
+							"name": "sortingRevenue"
+						},
+						{
+							"name": "AlterRowforRevenue"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerKey as short,",
+						"          GeographyKey as short,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          Gender as string,",
+						"          City as string,",
+						"          PostalCode as string,",
+						"          SalesTerritoryKey as short,",
+						"          EmailAddress as string,",
+						"          MaritalStatus as string,",
+						"          BirthDate as date,",
+						"          YearlyIncome as integer,",
+						"          TotalChildren as short,",
+						"          NumberChildrenAtHome as short",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> CustomerGeotable",
+						"source(output(",
+						"          ProductKey as short,",
+						"          OrderDateKey as date,",
+						"          DueDateKey as date,",
+						"          ShipDateKey as date,",
+						"          CustomerKey as short,",
+						"          PromotionKey as short,",
+						"          CurrencyKey as short,",
+						"          SalesTerritoryKey as short,",
+						"          SalesOrderNumber as string,",
+						"          SalesOrderLineNumber as short,",
+						"          RevisionNumber as boolean,",
+						"          OrderQuantity as boolean,",
+						"          UnitPrice as double,",
+						"          ExtendedAmount as double,",
+						"          UnitPriceDiscountPct as boolean,",
+						"          DiscountAmount as boolean,",
+						"          ProductStandardCost as double,",
+						"          TotalProductCost as double,",
+						"          SalesAmount as double,",
+						"          TaxAmt as double,",
+						"          Freight as double,",
+						"          CarrierTrackingNumber as string,",
+						"          CustomerPONumber as string,",
+						"          OrderDate as date,",
+						"          DueDate as date,",
+						"          ShipDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> internetSales",
+						"CustomerGeotable, internetSales join(CustomerGeotable@CustomerKey == internetSales@CustomerKey,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joiningtables",
+						"joiningtables select(mapColumn(",
+						"          GeographyKey,",
+						"          City,",
+						"          PostalCode,",
+						"          ProductKey,",
+						"          SalesTerritoryKey = internetSales@SalesTerritoryKey,",
+						"          OrderQuantity,",
+						"          SalesAmount",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectRevenueCol",
+						"selectRevenueCol aggregate(groupBy(City),",
+						"     Total_Revenue = round(sum(SalesAmount),0)) ~> RevenueCityWise",
+						"RevenueCityWise sort(desc(Total_Revenue, true)) ~> sortingRevenue",
+						"sortingRevenue alterRow(upsertIf(true())) ~> AlterRowforRevenue",
+						"AlterRowforRevenue sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['City'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTable')]",
+				"[concat(variables('factoryId'), '/datasets/InternetSales')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTableForRevenue')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/join_Cust_geo')]",
