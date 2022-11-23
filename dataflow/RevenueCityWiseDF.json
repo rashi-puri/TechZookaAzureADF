@@ -1,0 +1,133 @@
+{
+	"name": "RevenueCityWiseDF",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable",
+						"type": "DatasetReference"
+					},
+					"name": "CustomerGeotable"
+				},
+				{
+					"dataset": {
+						"referenceName": "InternetSales",
+						"type": "DatasetReference"
+					},
+					"name": "internetSales"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTableForRevenue",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "joiningtables"
+				},
+				{
+					"name": "selectRevenueCol"
+				},
+				{
+					"name": "RevenueCityWise"
+				},
+				{
+					"name": "sortingRevenue"
+				},
+				{
+					"name": "AlterRowforRevenue"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerKey as short,",
+				"          GeographyKey as short,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          Gender as string,",
+				"          City as string,",
+				"          PostalCode as string,",
+				"          SalesTerritoryKey as short,",
+				"          EmailAddress as string,",
+				"          MaritalStatus as string,",
+				"          BirthDate as date,",
+				"          YearlyIncome as integer,",
+				"          TotalChildren as short,",
+				"          NumberChildrenAtHome as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> CustomerGeotable",
+				"source(output(",
+				"          ProductKey as short,",
+				"          OrderDateKey as date,",
+				"          DueDateKey as date,",
+				"          ShipDateKey as date,",
+				"          CustomerKey as short,",
+				"          PromotionKey as short,",
+				"          CurrencyKey as short,",
+				"          SalesTerritoryKey as short,",
+				"          SalesOrderNumber as string,",
+				"          SalesOrderLineNumber as short,",
+				"          RevisionNumber as boolean,",
+				"          OrderQuantity as boolean,",
+				"          UnitPrice as double,",
+				"          ExtendedAmount as double,",
+				"          UnitPriceDiscountPct as boolean,",
+				"          DiscountAmount as boolean,",
+				"          ProductStandardCost as double,",
+				"          TotalProductCost as double,",
+				"          SalesAmount as double,",
+				"          TaxAmt as double,",
+				"          Freight as double,",
+				"          CarrierTrackingNumber as string,",
+				"          CustomerPONumber as string,",
+				"          OrderDate as date,",
+				"          DueDate as date,",
+				"          ShipDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> internetSales",
+				"CustomerGeotable, internetSales join(CustomerGeotable@CustomerKey == internetSales@CustomerKey,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joiningtables",
+				"joiningtables select(mapColumn(",
+				"          GeographyKey,",
+				"          City,",
+				"          PostalCode,",
+				"          ProductKey,",
+				"          SalesTerritoryKey = internetSales@SalesTerritoryKey,",
+				"          OrderQuantity,",
+				"          SalesAmount",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRevenueCol",
+				"selectRevenueCol aggregate(groupBy(City),",
+				"     Total_Revenue = round(sum(SalesAmount),0)) ~> RevenueCityWise",
+				"RevenueCityWise sort(desc(Total_Revenue, true)) ~> sortingRevenue",
+				"sortingRevenue alterRow(upsertIf(true())) ~> AlterRowforRevenue",
+				"AlterRowforRevenue sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}
