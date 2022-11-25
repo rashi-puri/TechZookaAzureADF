@@ -22,7 +22,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "AzureSqlTableForRevenue",
+						"referenceName": "updatedcustcity",
 						"type": "DatasetReference"
 					},
 					"name": "sink1"

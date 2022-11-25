@@ -1,0 +1,16 @@
+{
+	"name": "AzureSqlCountry",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Country_wise_revenue"
+		}
+	}
+}

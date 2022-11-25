@@ -30,7 +30,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "updatedcustcity",
+						"referenceName": "AzureSqlCountry",
 						"type": "DatasetReference"
 					},
 					"name": "revenueDesc"
@@ -54,9 +54,6 @@
 				},
 				{
 					"name": "revenueDesc1"
-				},
-				{
-					"name": "AlterRow1"
 				}
 			],
 			"scriptLines": [
@@ -175,7 +172,6 @@
 				"          PostalCode,",
 				"          ProductKey,",
 				"          SalesTerritoryKey = InternelSales@SalesTerritoryKey,",
-				"          OrderQuantity,",
 				"          SalesAmount",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
@@ -184,14 +180,13 @@
 				"     Total_Revenue = round(sum(SalesAmount),0)) ~> sumOfRevenue",
 				"sumOfRevenue sort(desc(Total_Revenue, true),",
 				"     caseInsensitive: true) ~> revenueDesc1",
-				"revenueDesc1 alterRow(upsertIf(true())) ~> AlterRow1",
-				"AlterRow1 sink(allowSchemaDrift: true,",
+				"revenueDesc1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
-				"     insertable:false,",
+				"     insertable:true,",
 				"     updateable:false,",
-				"     upsertable:true,",
-				"     keys:['City'],",
+				"     upsertable:false,",
+				"     recreate:true,",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
